@@ -12,19 +12,23 @@
     "dev": "node --watch --env-file=.env server/index.mjs",
     "test": "node --test test/*.test.mjs",
     "check": "node --check app.mjs && node --check server/app.mjs && node --check server/postgres.mjs && node --check server/config.mjs && node --check server/index.mjs && node --check public/app.js",
-    "setup:deployment": "node scripts/deployment-secrets.mjs"
+    "setup:deployment": "node scripts/deployment-secrets.mjs",
+    "postinstall": "node scripts/build-sanitizer.mjs",
+    "build:sanitizer": "node scripts/build-sanitizer.mjs",
+    "test:runtime": "node --test test/runtime.test.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-sesv2": "^3.0.0",
     "@vercel/functions": "^3.9.9",
     "csv-parse": "^7.0.2",
+    "esbuild": "0.28.2",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "html-to-text": "^10.0.1",
     "ipaddr.js": "^2.2.0",
     "nodemailer": "^10.0.10",
     "pg": "^8.23.0",
-    "sanitize-html": "^2.17.7",
+    "sanitize-html": "2.17.7",
     "zod": "^4.0.0"
   },
   "devDependencies": {

@@ -96,6 +96,19 @@ After deployment, confirm `/api/health` returns `{"ok":true}`. This checks datab
 connectivity as well as the handler. Confirm the home page, CSS and JavaScript load.
 The entry point is `app.mjs`; it starts no timer and writes no local database.
 
+`npm ci` runs the `postinstall` script to bundle the current HTML sanitizer and
+its parser into `server/generated/sanitize-html.cjs`. This avoids the
+`ERR_REQUIRE_ESM` startup failure in runtimes that disable `require(ESM)`, while
+retaining the sanitizer's current security fixes. The generated file is ignored
+by Git and rebuilt during installation. Keep install scripts enabled; do not use
+`npm ci --ignore-scripts`. No separate Vercel Build Command is needed.
+
+If redeploying after this compatibility fix, deploy the commit containing
+`scripts/build-sanitizer.mjs`, `server/content.mjs`, `package.json` and its lockfile.
+Clear the existing build cache for the first redeployment and confirm the install
+log shows `node scripts/build-sanitizer.mjs`. `npm run test:runtime` checks startup
+with `require(ESM)` disabled; it uses dummy settings and makes no database connection.
+
 Public signup, unsubscribe links and the Supabase worker require a publicly
 reachable production domain. If Vercel Deployment Protection restricts production,
 configure public access for this deployment. Do not expose a preview database.

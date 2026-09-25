@@ -1,4 +1,4 @@
-import sanitizeHtml from "sanitize-html";
+import sanitizeHtml from "./generated/sanitize-html.cjs";
 import { convert } from "html-to-text";
 
 export const escapeHtml = (value) =>
