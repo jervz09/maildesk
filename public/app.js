@@ -86,9 +86,70 @@ function empty(title, text, action, label) {
 function heading(title, description, action = "", label = "") {
   return `<div class="page-heading"><div><h1>${title}</h1><p>${description}</p></div>${action ? `<button data-action="${action}">${label}</button>` : ""}</div>`;
 }
+function emailIllustration(register) {
+  return `<div class="email-illustration" aria-hidden="true">
+    <svg class="mail-scene" viewBox="0 0 560 320" fill="none" focusable="false">
+      <ellipse cx="280" cy="168" rx="245" ry="134" class="mail-orbit" />
+      <ellipse cx="280" cy="168" rx="190" ry="98" class="mail-orbit mail-orbit-inner" />
+      <path d="M172 177C197 38 334 30 397 92S456 168 465 193" class="mail-flight-path" />
+      <g class="mail-compose">
+        <rect x="28" y="118" width="204" height="152" rx="14" class="mail-card-shadow" />
+        <rect x="28" y="112" width="204" height="152" rx="14" class="mail-card" />
+        <path d="M28 151H232" class="mail-divider" />
+        <circle cx="46" cy="132" r="3" fill="#c9c0ef" /><circle cx="58" cy="132" r="3" fill="#ded8f5" />
+        <text x="75" y="136" class="mail-small-label">${register ? "Your workspace" : "New message"}</text>
+        <rect x="46" y="169" width="29" height="29" rx="9" fill="#efecff" />
+        <path d="M53 178H68V189H53ZM53 178L60.5 184L68 178" stroke="#6654da" stroke-width="1.4" stroke-linejoin="round" />
+        <rect x="87" y="173" width="94" height="5" rx="2.5" fill="#d8d2ed" />
+        <rect x="87" y="185" width="65" height="4" rx="2" fill="#ece8f6" />
+        <rect x="46" y="211" width="127" height="4" rx="2" fill="#ece8f6" />
+        <rect x="46" y="223" width="94" height="4" rx="2" fill="#ece8f6" />
+        <rect x="178" y="224" width="36" height="24" rx="7" fill="#6654da" />
+        <path d="M189 236H203M199 232L203 236L199 240" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      </g>
+      <g class="mail-destination">
+        <rect x="351" y="164" width="183" height="99" rx="14" class="mail-card-shadow" />
+        <rect x="351" y="158" width="183" height="99" rx="14" class="mail-card" />
+        <rect x="369" y="179" width="35" height="35" rx="10" fill="#efecff" />
+        <path d="M377 189H397V203H377ZM377 189L387 197L397 189" stroke="#6654da" stroke-width="1.5" stroke-linejoin="round" />
+        <text x="415" y="190" class="mail-card-title">${register ? "First hello" : "Inbox"}</text>
+        <rect x="415" y="199" width="88" height="4" rx="2" fill="#e5e0f3" />
+        <rect x="369" y="231" width="107" height="4" rx="2" fill="#ece8f6" />
+        <g class="mail-received"><circle cx="516" cy="162" r="13" fill="#258461" stroke="#f2effc" stroke-width="4" /><path d="M511 162L514 165L521 158" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></g>
+      </g>
+      <g class="mail-paper-plane">
+        <path d="M-32-13L36-23L-5 27L-10 4Z" fill="#6654da" stroke="#5947cb" stroke-linejoin="round" />
+        <path d="M-32-13L36-23L-10 4Z" fill="white" stroke="#b5a9e9" stroke-linejoin="round" />
+        <path d="M-10 4L36-23L0 12L-5 27Z" fill="#b6a8ee" />
+        <path d="M0 12L36-23L14 21Z" fill="#f5f2ff" stroke="#b5a9e9" stroke-linejoin="round" />
+      </g>
+      <g class="mail-note"><rect x="368" y="39" width="39" height="30" rx="7" fill="#f8f6ff" stroke="#ded7f2" /><path d="M377 49H398M377 55H391" stroke="#b8acd9" stroke-width="2" stroke-linecap="round" /></g>
+      <circle cx="80" cy="71" r="4" fill="#d4c9f3" /><circle cx="304" cy="263" r="3" fill="#bcb0e7" />
+    </svg>
+    <div class="mail-steps"><span>Compose</span><span class="mail-step-line"></span><span>Send</span><span class="mail-step-line"></span><span class="mail-step-delivered">Delivered <span>✓</span></span></div>
+  </div>`;
+}
 function authView() {
   const register = state.auth === "register";
-  root.innerHTML = `<main class="auth"><section class="auth-story"><div class="brand"><span class="brand-icon">✉</span>maildesk</div><div class="auth-copy"><span class="auth-badge">YOUR EMAIL. YOUR PROVIDER.</span><h1>A better home<br>for every send.</h1><p>Connect your email provider, bring your audience, and send thoughtful campaigns. All in one workspace.</p><div class="auth-feature"><span>✓</span>AWS SES, Gmail, or your own SMTP</div><div class="auth-feature"><span>✓</span>A private workspace for every company</div><div class="auth-feature"><span>✓</span>Campaigns and an API that work together</div></div><div class="auth-footer">Built for teams that want to stay in control.</div></section><section class="auth-form"><h2>${register ? "Create your workspace" : "Welcome back"}</h2><p>${register ? "One company. One private place for your email." : "Sign in to your company’s email workspace."}</p><form id="auth-form">${register ? field("company", "Company name", "", "text", 'required maxlength="120" placeholder="Acme Studio"') : ""}${field("email", "Work email", "", "email", 'required autocomplete="username" placeholder="you@company.com"')}${field("password", "Password", "", "password", `required minlength="12" maxlength="128" autocomplete="${register ? "new-password" : "current-password"}"`, register ? "Use at least 12 characters." : "")}<div id="auth-error" class="error" role="alert"></div><button type="submit">${register ? "Create workspace →" : "Sign in →"}</button></form>${state.signupEnabled ? `<div class="auth-switch">${register ? "Already have a workspace?" : "New to Maildesk?"} <button class="ghost" data-action="auth-switch">${register ? "Sign in" : "Create a workspace"}</button></div>` : ""}</section></main>`;
+  root.innerHTML = `<main class="auth ${register ? "auth-register" : "auth-login"}">
+    <section class="auth-story" aria-label="Maildesk email workspace">
+      <div class="brand"><span class="brand-icon" aria-hidden="true">✉</span>maildesk</div>
+      <div class="auth-visual">
+        <div class="auth-copy"><span class="auth-badge">YOUR EMAIL. YOUR PROVIDER.</span><h1>${register ? "A little hello.<br>A world of possibility." : "Good things<br>start with a send."}</h1><p>${register ? "Give your email a home. Create your workspace and make your first connection." : "From your first draft to their inbox.<br>Bring every email together in one workspace."}</p></div>
+        ${emailIllustration(register)}
+      </div>
+      <div class="auth-footer"><span class="auth-footer-dot" aria-hidden="true"></span>Your provider. Your audience. Your workspace.</div>
+    </section>
+    <section class="auth-form" aria-labelledby="auth-title">
+      <div class="auth-form-mark" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" stroke-width="1.5" /><path d="M4 7L12 13L20 7" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" /></svg></div>
+      <span class="auth-eyebrow">${register ? "YOUR NEXT CHAPTER" : "YOUR EMAIL WORKSPACE"}</span>
+      <h2 id="auth-title">${register ? "Create your workspace" : "Welcome back"}</h2>
+      <p>${register ? "A home for your team. A place for every send." : "Sign in and pick up where you left off."}</p>
+      <form id="auth-form">${register ? field("company", "Company name", "", "text", 'required maxlength="120" placeholder="Acme Studio"') : ""}${field("email", "Work email", "", "email", 'required autocomplete="username" placeholder="you@company.com"')}${field("password", "Password", "", "password", `required minlength="12" maxlength="128" autocomplete="${register ? "new-password" : "current-password"}"`, register ? "Use at least 12 characters." : "")}<div id="auth-error" class="error" role="alert"></div><button type="submit">${register ? "Create workspace →" : "Sign in →"}</button></form>
+      ${state.signupEnabled ? `<div class="auth-switch">${register ? "Already have a workspace?" : "New to Maildesk?"} <button class="ghost" data-action="auth-switch">${register ? "Sign in" : "Create a workspace"}</button></div>` : ""}
+      <p class="auth-form-note"><svg aria-hidden="true" width="13" height="15" viewBox="0 0 16 18" fill="none"><path d="M8 1L14 3.5V8C14 12 11 15 8 17C5 15 2 12 2 8V3.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" /><path d="M5 8.5L7 10.5L11 6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" /></svg>A private workspace for your company.</p>
+    </section>
+  </main>`;
 }
 function shell() {
   const org = state.me.organization;
