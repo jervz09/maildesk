@@ -15,6 +15,8 @@ import {
 import { providers as realProviders, failedDelivery } from "./providers.mjs";
 
 import { renderCampaignBody, sanitizeEmailHtml } from "./content.mjs";
+import { createOAuthProviders } from "./oauth-providers.mjs";
+import { mountOAuth } from "./oauth.mjs";
 
 const now = () => new Date().toISOString();
 const email = z.string().trim().toLowerCase().email().max(254);
@@ -91,6 +93,7 @@ export function createApp(options) {
   const crypto = vault(options.key);
   const transport = options.providers || realProviders;
   const publicUrl = new URL(options.publicUrl).origin;
+  const oauthProviders = options.oauthProviders || createOAuthProviders(options.oauth);
   const app = options.app || express();
   app.disable("x-powered-by");
   app.use(
@@ -175,7 +178,10 @@ export function createApp(options) {
       res.json({ ok: true });
     });
   app.get("/api/setup", (_, res) =>
-    res.json({ signupEnabled: options.allowSignup !== false }),
+    res.json({
+      signupEnabled: options.allowSignup !== false,
+      oauthProviders: Object.values(oauthProviders).map(({ id, name }) => ({ id, name })),
+    }),
   );
   app.post("/api/auth/register", async (req, res) => {
     demand(options.allowSignup !== false, "Registration is disabled.", 403);
@@ -216,6 +222,11 @@ export function createApp(options) {
     demand(user && matches, "Email or password is incorrect.", 401);
     await session(res, user.id);
     res.json({ ok: true });
+  });
+  mountOAuth(app, {
+    db, crypto, providers: oauthProviders, publicUrl,
+    production: options.production, allowSignup: options.allowSignup,
+    session, limit, clientAddress,
   });
   async function authenticate(req, res, next) {
     if (req.headers.authorization) {

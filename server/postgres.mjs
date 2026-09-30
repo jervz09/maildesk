@@ -4,7 +4,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 // All application SQL is static. Keep the same placeholders as the local adapter,
 // but qualify tables so nothing depends on a pooled connection's search_path.
 const tables =
-  "organizations|users|sessions|providers|contacts|suppressions|campaigns|recipients|attempts|api_keys|requests|gates|rate_limits|draft_previews";
+  "organizations|users|sessions|oauth_identities|oauth_states|oauth_pending|providers|contacts|suppressions|campaigns|recipients|attempts|api_keys|requests|gates|rate_limits|draft_previews";
 export function postgresSql(sql, schema = "maildesk") {
   const ignore = /INSERT OR IGNORE INTO/i.test(sql);
   let index = 0;

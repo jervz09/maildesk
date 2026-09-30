@@ -65,7 +65,8 @@ Official guides: [identities](https://docs.aws.amazon.com/ses/latest/dg/creating
   attempts in a rolling 24 hours. This is an application safeguard, not a promise
   of available Google quota. Google's account limits still apply.
 - Some managed accounts and security policies do not offer app passwords.
-  Google OAuth is not implemented in this version.
+  Gmail sending still uses an app password. Google social sign-in is separate
+  and does not grant permission to send email.
 
 [Google app password help](https://support.google.com/accounts/answer/185833),
 [Nodemailer Gmail guide](https://nodemailer.com/guides/using-gmail).
@@ -178,10 +179,17 @@ configure proxy-level rate limiting for public deployments.
 
 Scope of this first version: one owner per company; HTML and plain-text campaigns; manually
 managed suppression plus public unsubscribe; no billing, invitation roles, password
-reset, email verification, OAuth, attachment/template editor, automatic bounce-event
+reset, password-account email verification, attachment/template editor, automatic bounce-event
 ingestion, or inbox-delivery/open/click analytics. SQLite remains single-process;
 the Postgres deployment supports concurrent worker invocations. Public SaaS
 launch needs those operational/account-lifecycle features according to your needs.
+
+## Social sign-in
+
+Google and GitHub sign-in use the existing users and session system. Providers
+appear only when their server credentials are configured. Existing email accounts
+require explicit ownership proof before linking. See [OAUTH.md](OAUTH.md) for
+credentials, exact callback URLs, the additive database migration, and testing.
 
 ## Verification
 

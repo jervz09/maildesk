@@ -188,8 +188,10 @@ Vercel's payload ceiling. Contacts and recipient snapshots use batched inserts.
 Large campaigns need throughput/load validation before increasing this test setup.
 
 This is a public-signup testing deployment. The existing limitations remain:
-one owner per company; no email verification, password reset, team invitations,
-Google OAuth or automatic bounce ingestion. The low Gmail default is per workspace,
+one owner per company; no password-account email verification, password reset,
+team invitations, or automatic bounce ingestion. Google/GitHub social sign-in
+requires the migration and credentials described in [OAUTH.md](OAUTH.md).
+The low Gmail default is per workspace,
 not a global site-wide cap. No paid services or plans are purchased by these files.
 
 References:

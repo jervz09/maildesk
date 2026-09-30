@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { postgresDatabase } from "../../server/postgres.mjs";
 
 export async function testDatabase() {
@@ -12,14 +12,11 @@ export async function testDatabase() {
   const makeConnection = () =>
     postgresDatabase({ connectionString, ssl, schema });
   const db = makeConnection();
-  const migration = readFileSync(
-    new URL(
-      "../../supabase/migrations/202609250001_maildesk.sql",
-      import.meta.url,
-    ),
-    "utf8",
-  );
-  await db.pool.query(migration.replaceAll(/\bmaildesk\b/g, schema));
+  const directory = new URL("../../supabase/migrations/", import.meta.url);
+  for (const name of readdirSync(directory).filter((file) => file.endsWith(".sql")).sort()) {
+    const migration = readFileSync(new URL(name, directory), "utf8");
+    await db.pool.query(migration.replaceAll(/\bmaildesk\b/g, schema));
+  }
   const close = db.close;
   db.connectPeer = makeConnection;
   db.close = async () => {

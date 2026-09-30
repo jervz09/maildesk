@@ -16,6 +16,18 @@ export function database(path) {
       password TEXT NOT NULL, created_at TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS sessions (
       token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), expires_at INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS oauth_identities (
+      id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), provider TEXT NOT NULL,
+      provider_user_id TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+      UNIQUE(provider,provider_user_id));
+    CREATE INDEX IF NOT EXISTS oauth_identities_user ON oauth_identities(user_id);
+    CREATE TABLE IF NOT EXISTS oauth_states (
+      state_hash TEXT PRIMARY KEY, provider TEXT NOT NULL, browser_hash TEXT NOT NULL,
+      payload TEXT NOT NULL, expires_at INTEGER NOT NULL);
+    CREATE INDEX IF NOT EXISTS oauth_states_expiry ON oauth_states(expires_at);
+    CREATE TABLE IF NOT EXISTS oauth_pending (
+      token_hash TEXT PRIMARY KEY, payload TEXT NOT NULL, expires_at INTEGER NOT NULL);
+    CREATE INDEX IF NOT EXISTS oauth_pending_expiry ON oauth_pending(expires_at);
     CREATE TABLE IF NOT EXISTS providers (
       org_id TEXT PRIMARY KEY REFERENCES organizations(id), kind TEXT NOT NULL, config TEXT NOT NULL,
       verified_at TEXT, info TEXT, updated_at TEXT NOT NULL);

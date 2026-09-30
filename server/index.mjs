@@ -8,6 +8,7 @@ import {
   closeSync,
 } from "node:fs";
 import { createApp } from "./app.mjs";
+import { oauthConfig } from "./oauth-providers.mjs";
 const databasePath = resolve(
   process.env.DATABASE_PATH || "./data/maildesk.sqlite",
 );
@@ -53,6 +54,7 @@ const { app, tick, recover, db } = createApp({
   publicUrl,
   production,
   allowSignup: process.env.ALLOW_SIGNUP === "true",
+  oauth: oauthConfig(process.env),
 });
 await recover();
 let running;

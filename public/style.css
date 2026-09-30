@@ -845,6 +845,58 @@ tr:last-child td {
 .auth-switch .ghost:hover {
   text-decoration: underline;
 }
+.auth-social {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.auth-social .auth-social-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  min-height: 46px;
+  color: var(--ink);
+  background: var(--panel);
+  border-color: #c9c5d6;
+  font-weight: 500;
+}
+.auth-social .auth-social-button:hover:not(:disabled) {
+  background: #f8f7fc;
+  border-color: var(--purple);
+}
+.auth-social-button[aria-busy="true"] {
+  opacity: 0.6;
+  cursor: wait;
+}
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 2px 0 20px;
+  font-size: 11px;
+  color: var(--auth-muted);
+}
+.auth-divider::before, .auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.auth-identity {
+  display: grid;
+  gap: 6px;
+  background: var(--soft);
+  border: 1px solid #e1dbf8;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 22px;
+  overflow-wrap: anywhere;
+}
+.auth-identity span {
+  font-size: 12px;
+  color: var(--auth-muted);
+}
 .auth-form .auth-form-note {
   display: flex;
   justify-content: center;

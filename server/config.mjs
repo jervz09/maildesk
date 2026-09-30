@@ -1,3 +1,5 @@
+import { oauthConfig } from "./oauth-providers.mjs";
+
 export function deploymentConfig(env) {
   if (!env.DATABASE_URL)
     throw new Error("Set DATABASE_URL to the Supabase transaction pooler URI.");
@@ -30,5 +32,6 @@ export function deploymentConfig(env) {
     allowSignup: env.ALLOW_SIGNUP === "true",
     workerSecret: env.WORKER_SECRET,
     maxCampaignsPerTick: 1,
+    oauth: oauthConfig(env),
   };
 }

@@ -10,6 +10,9 @@ const state = {
   contactOffset: 0,
   auth: "login",
   signupEnabled: true,
+  oauthProviders: [],
+  oauthPending: null,
+  oauthError: "",
 };
 const esc = (v) =>
   String(v ?? "").replace(
@@ -129,8 +132,33 @@ function emailIllustration(register) {
     <div class="mail-steps"><span>Compose</span><span class="mail-step-line"></span><span>Send</span><span class="mail-step-line"></span><span class="mail-step-delivered">Delivered <span>✓</span></span></div>
   </div>`;
 }
+const oauthMessages = {
+  cancelled: "Sign-in was cancelled. You can try again or use your email and password.",
+  state: "This sign-in request expired or could not be verified. Please start again.",
+  provider: "The sign-in provider could not be reached or verified. Please try again.",
+  email: "Verify your provider email address before continuing. GitHub requires a verified primary email.",
+  disabled: "This sign-in provider is not available.",
+  signup: "New workspace registration is currently disabled. Use an existing account.",
+  conflict: "We couldn’t link these accounts. Please start again and use your existing sign-in method.",
+  limit: "Too many attempts. Please try again in 15 minutes.",
+};
+function socialButtons(providers = state.oauthProviders, link = false) {
+  if (!providers.length) return "";
+  return `<div class="auth-social" role="group" aria-label="${link ? "Verify an existing linked account" : "Social sign-in"}">${providers.map(({ id, name }) => `<button type="button" class="secondary auth-social-button" data-action="oauth-start" data-provider="${esc(id)}" data-link="${link}"><img src="/oauth/${esc(id)}.svg" alt="" width="20" height="20"><span>${link ? "Verify with" : "Continue with"} ${esc(name)}</span></button>`).join("")}</div>`;
+}
+function oauthCompletion() {
+  const pending = state.oauthPending, link = pending.mode === "link";
+  return `<div class="auth-identity"><strong>${esc(pending.email)}</strong><span>Verified with ${esc(pending.provider)}</span></div>
+    <form id="oauth-complete-form">${link ? field("password", "Existing Maildesk password", "", "password", 'required minlength="12" maxlength="128" autocomplete="current-password"') : field("company", "Company name", "", "text", 'required maxlength="120" placeholder="Acme Studio"')}
+    <div id="auth-error" class="error" role="alert"></div><button type="submit">${link ? `Link ${esc(pending.provider)} and sign in` : "Create workspace →"}</button></form>
+    ${link && pending.providers.length ? `<div class="auth-divider"><span>or verify an already linked account</span></div>${socialButtons(pending.providers, true)}` : ""}
+    <div class="auth-switch"><button type="button" class="ghost" data-action="oauth-cancel">Back to sign in</button></div>`;
+}
 function authView() {
   const register = state.auth === "register";
+  const pending = state.oauthPending;
+  const title = pending ? pending.mode === "link" ? "Link your account" : "One last step" : register ? "Create your workspace" : "Welcome back";
+  const description = pending ? pending.mode === "link" ? `An account already uses this email. Confirm your existing password or an already linked provider to connect ${pending.provider}.` : "Your email is verified. Give your company’s workspace a name." : register ? "A home for your team. A place for every send." : "Sign in and pick up where you left off.";
   root.innerHTML = `<main class="auth ${register ? "auth-register" : "auth-login"}">
     <section class="auth-story" aria-label="Maildesk email workspace">
       <div class="brand"><span class="brand-icon" aria-hidden="true">✉</span>maildesk</div>
@@ -143,10 +171,15 @@ function authView() {
     <section class="auth-form" aria-labelledby="auth-title">
       <div class="auth-form-mark" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" stroke-width="1.5" /><path d="M4 7L12 13L20 7" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" /></svg></div>
       <span class="auth-eyebrow">${register ? "YOUR NEXT CHAPTER" : "YOUR EMAIL WORKSPACE"}</span>
-      <h2 id="auth-title">${register ? "Create your workspace" : "Welcome back"}</h2>
-      <p>${register ? "A home for your team. A place for every send." : "Sign in and pick up where you left off."}</p>
+      <h2 id="auth-title">${esc(title)}</h2>
+      <p>${esc(description)}</p>
+      ${state.oauthError ? `<div class="error" role="alert">${esc(state.oauthError)}</div>` : ""}
+      ${pending ? oauthCompletion() : `
+      ${register && state.oauthProviders.length ? `${socialButtons()}<div class="auth-divider"><span>or register with email</span></div>` : ""}
       <form id="auth-form">${register ? field("company", "Company name", "", "text", 'required maxlength="120" placeholder="Acme Studio"') : ""}${field("email", "Work email", "", "email", 'required autocomplete="username" placeholder="you@company.com"')}${field("password", "Password", "", "password", `required minlength="12" maxlength="128" autocomplete="${register ? "new-password" : "current-password"}"`, register ? "Use at least 12 characters." : "")}<div id="auth-error" class="error" role="alert"></div><button type="submit">${register ? "Create workspace →" : "Sign in →"}</button></form>
+      ${!register && state.oauthProviders.length ? `<div class="auth-divider"><span>or continue with</span></div>${socialButtons()}` : ""}
       ${state.signupEnabled ? `<div class="auth-switch">${register ? "Already have a workspace?" : "New to Maildesk?"} <button class="ghost" data-action="auth-switch">${register ? "Sign in" : "Create a workspace"}</button></div>` : ""}
+      `}
       <p class="auth-form-note"><svg aria-hidden="true" width="13" height="15" viewBox="0 0 16 18" fill="none"><path d="M8 1L14 3.5V8C14 12 11 15 8 17C5 15 2 12 2 8V3.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" /><path d="M5 8.5L7 10.5L11 6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" /></svg>A private workspace for your company.</p>
     </section>
   </main>`;
@@ -409,7 +442,25 @@ document.addEventListener("click", async (event) => {
   if (!button) return;
   const action = button.dataset.action;
   try {
+    if (action === "oauth-start") {
+      button.disabled = true;
+      button.setAttribute("aria-busy", "true");
+      const { url } = await api(`/auth/oauth/${button.dataset.provider}/start`, {
+        method: "POST", body: { link: button.dataset.link === "true" },
+      });
+      window.location.assign(url);
+      return;
+    }
+    if (action === "oauth-cancel") {
+      await api("/auth/oauth/cancel", { method: "POST", body: {} });
+      state.oauthPending = null;
+      state.oauthError = "";
+      state.auth = "login";
+      history.replaceState(null, "", location.pathname);
+      return authView();
+    }
     if (action === "auth-switch") {
+      state.oauthError = "";
       state.auth = state.auth === "login" ? "register" : "login";
       return authView();
     }
@@ -506,6 +557,7 @@ document.addEventListener("click", async (event) => {
     toast(error.message, true);
   } finally {
     button.disabled = false;
+    button.removeAttribute("aria-busy");
   }
 });
 document.addEventListener("submit", async (event) => {
@@ -517,6 +569,13 @@ document.addEventListener("submit", async (event) => {
   const values = Object.fromEntries(new FormData(form));
   try {
     switch (form.id) {
+      case "oauth-complete-form":
+        await api("/auth/oauth/complete", { method: "POST", body: values });
+        state.oauthPending = null;
+        state.oauthError = "";
+        state.me = await api("/me");
+        history.replaceState(null, "", "#overview");
+        return render();
       case "auth-form":
         await api(`/auth/${state.auth === "register" ? "register" : "login"}`, {
           method: "POST",
@@ -604,7 +663,7 @@ document.addEventListener("submit", async (event) => {
     }
     await render();
   } catch (error) {
-    if (form.id === "auth-form") {
+    if (form.id === "auth-form" || form.id === "oauth-complete-form") {
       document.querySelector("#auth-error").textContent = error.message;
     } else toast(error.message, true);
   } finally {
@@ -672,8 +731,24 @@ async function boot() {
   try {
     const setup = await api("/setup");
     state.signupEnabled = setup.signupEnabled;
+    state.oauthProviders = setup.oauthProviders || [];
+    if (location.hash.startsWith("#oauth-error=")) {
+      const code = location.hash.slice("#oauth-error=".length);
+      state.oauthError = Object.hasOwn(oauthMessages, code) ? oauthMessages[code] : oauthMessages.provider;
+      history.replaceState(null, "", location.pathname);
+    }
+    if (location.hash === "#oauth-complete") {
+      try {
+        state.oauthPending = await api("/auth/oauth/pending");
+        return authView();
+      } catch {
+        state.oauthError = oauthMessages.state;
+        history.replaceState(null, "", location.pathname);
+      }
+    }
     state.me = await api("/me");
   } catch {}
   await render();
+  if (state.me && state.oauthError) toast(state.oauthError, true);
 }
 boot();
